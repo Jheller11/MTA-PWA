@@ -6,6 +6,7 @@ const request = require('request')
 const GtfsRealtimeBindings = require('gtfs-realtime-bindings')
 require('dotenv').config()
 
+// require middleware
 app.use(compression())
 app.use(helmet())
 
