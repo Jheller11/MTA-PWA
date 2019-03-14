@@ -1,0 +1,9 @@
+{
+  "mongoURL": "mongodb://localhost/gtfs",
+  "agencies": [
+    {
+      "agency_key": "MTA",
+      "path": "/Users/jeffreyheller/Downloads/google_transit.zip"
+    }
+  ]
+}

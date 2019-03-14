@@ -2,36 +2,39 @@ const express = require('express')
 const app = express()
 const compression = require('compression')
 const helmet = require('helmet')
-const request = require('request')
-const GtfsRealtimeBindings = require('gtfs-realtime-bindings')
+const gtfs = require('gtfs')
+const mongoose = require('mongoose')
+const config = require('./db/config.json')
 require('dotenv').config()
 
 // require middleware
 app.use(compression())
 app.use(helmet())
 
+mongoose.connect('mongodb://localhost/gtfs', { useNewUrlParser: true })
+
 // get subway times from mta and deliver to frontend
 app.get('/refresh', async (req, res, next) => {
-  request(
-    {
-      method: 'GET',
-      url: `http://datamine.mta.info/mta_esi.php?key=${
-        process.env.MTA_KEY
-      }&feed_id=1`,
-      encoding: null
-    },
-    (error, response, body) => {
-      if (!error && response.statusCode == 200) {
-        var feed = GtfsRealtimeBindings.FeedMessage.decode(body)
-        console.log(feed.entity[0].trip_update.stop_time_update)
-      }
-    }
-  )
+  gtfs
+    .import(config)
+    .then(() => {
+      console.log('Import Successful')
+      return mongoose.connection.close()
+    })
+    .catch(err => console.log(err))
+  res.json({ message: 'refresh' })
 })
 
 // home route
 app.get('/', (req, res, next) => {
-  res.json({ message: 'Welcome to the API' })
+  gtfs
+    .getStoptimes({
+      agency_key: 'MTA',
+      stop_id: '230N'
+    })
+    .then(stoptimes => {
+      res.json(stoptimes)
+    })
 })
 
 // 404 route
